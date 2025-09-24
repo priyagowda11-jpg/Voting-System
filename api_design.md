@@ -1,4 +1,17 @@
-# API Design (Voting Prototype)
+
+## Table of Contents
+- [Overview](#overview)
+- [Authentication](#authentication)
+- [Conventions](#conventions)
+- [Endpoints](#endpoints)
+  - [Enroll voter](#1-enroll-voter)
+  - [Verify voter](#2-verify-voter)
+  - [Cast vote](#3-cast-vote)
+  - [Device heartbeat](#4-device-heartbeat)
+  - [Admin metrics](#5-admin-metrics)
+
+
+This is optional but makes your README/API doc more professional.# API Design (Voting Prototype)
 
 ## Overview 
 
