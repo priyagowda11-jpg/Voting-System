@@ -1,12 +1,17 @@
 import streamlit as st  # type: ignore
 import pandas as pd  # type: ignore
-import sqlite3
+import psycopg2  # type: ignore
+import psycopg2.extras  # type: ignore
 import plotly.graph_objects as go  # type: ignore
 import plotly.express as px  # type: ignore
 import numpy as np  # type: ignore
+import os
 from datetime import datetime, date
 import hashlib
 import time
+from dotenv import load_dotenv  # type: ignore
+
+load_dotenv()  # reads .env locally; Streamlit Cloud uses st.secrets
 
 # ── PAGE CONFIG ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -27,7 +32,6 @@ BORDER = "#d6e4f0"
 MUTED = "#6b7e93"
 TEXT = "#1a2b3c"
 
-# Chart dark theme colours (ApexCharts-style)
 C = [
     "#0FFCBE",
     "#106EBE",
@@ -91,12 +95,9 @@ html, body, [class*="css"] { font-family: 'Roboto', sans-serif !important; }
 .stApp { background-color: #f4f8fd !important; }
 .block-container { padding-top: 0 !important; padding-bottom: 2rem !important; max-width: 1200px !important; }
 
-/* ── LOGIN PANELS ── */
 .lp-left {
     background: linear-gradient(160deg, #0a4f8c 0%, #106EBE 55%, #1a82d8 100%);
-    border-radius: 20px;
-    padding: 48px 36px;
-    min-height: 560px;
+    border-radius: 20px; padding: 48px 36px; min-height: 560px;
     display: flex; flex-direction: column; justify-content: space-between;
     position: relative; overflow: hidden;
 }
@@ -110,50 +111,18 @@ html, body, [class*="css"] { font-family: 'Roboto', sans-serif !important; }
 .lp-feat li::before { content:''; width:8px; height:8px; background:#0FFCBE; border-radius:50%; flex-shrink:0; }
 .lp-footer { font-size:11px; color:rgba(255,255,255,.4); }
 
-.lp-right {
-    background: white;
-    border-radius: 20px;
-    padding: 48px 40px;
-    min-height: 560px;
-    display: flex; flex-direction: column; justify-content: center;
-    border: 1px solid #d6e4f0;
-    box-shadow: 0 8px 40px rgba(16,110,190,0.10);
-}
-.lp-welcome     { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:#106EBE; margin:0 0 6px; }
-.lp-welcome-sub { font-size:14px; color:#6b7e93; margin:0 0 6px; }
-.lp-bar         { height:3px; width:44px; background:#0FFCBE; border-radius:2px; margin-bottom:20px; }
-.lp-demo        { background:#f4f8fd; border:1px solid #d6e4f0; border-radius:10px; padding:14px 16px; margin-top:8px; }
-.lp-demo-title  { font-size:11px; color:#6b7e93; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-.lp-demo-row    { font-size:12px; color:#106EBE; line-height:2; }
-
-/* ── FORM INPUTS ── */
 .stTextInput > div > div > input {
     border:1.5px solid #d6e4f0 !important; border-radius:10px !important;
     padding:12px 14px !important; font-size:14px !important;
     background:#fafcfe !important; color:#1a2b3c !important;
 }
-.stTextInput > div > div > input:focus {
-    border-color:#106EBE !important;
-    box-shadow:0 0 0 3px rgba(16,110,190,.10) !important;
-}
+.stTextInput > div > div > input:focus { border-color:#106EBE !important; box-shadow:0 0 0 3px rgba(16,110,190,.10) !important; }
 .stTextInput > label { font-weight:500 !important; font-size:13px !important; color:#1a2b3c !important; }
 
-/* ── BUTTONS ── */
-.stButton > button {
-    background:#106EBE !important; color:white !important; border:none !important;
-    border-radius:10px !important; font-weight:600 !important; font-size:15px !important;
-    padding:12px 28px !important; transition:all .2s !important;
-}
+.stButton > button { background:#106EBE !important; color:white !important; border:none !important; border-radius:10px !important; font-weight:600 !important; font-size:15px !important; padding:12px 28px !important; transition:all .2s !important; }
 .stButton > button:hover { background:#1a82d8 !important; }
 
-/* ── DASHBOARD NAV ── */
-.topnav {
-    background:#106EBE; padding:0 32px; height:68px;
-    display:flex; align-items:center; justify-content:space-between;
-    border-radius:0 0 12px 12px;
-    margin:-1rem -1rem 2rem -1rem;
-    box-shadow:0 4px 20px rgba(16,110,190,.25);
-}
+.topnav { background:#106EBE; padding:0 32px; height:68px; display:flex; align-items:center; justify-content:space-between; border-radius:0 0 12px 12px; margin:-1rem -1rem 2rem -1rem; box-shadow:0 4px 20px rgba(16,110,190,.25); }
 .brand-row   { display:flex; align-items:center; gap:14px; }
 .brand-icon  { width:42px; height:42px; background:#0FFCBE; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; }
 .brand-title { font-family:'Playfair Display',serif!important; font-size:18px; font-weight:700; color:#fff; margin:0; }
@@ -161,19 +130,12 @@ html, body, [class*="css"] { font-family: 'Roboto', sans-serif !important; }
 .officer-pill{ background:rgba(15,252,190,.15); border:1px solid rgba(15,252,190,.35); color:#0FFCBE; padding:5px 14px; border-radius:20px; font-size:11px; font-weight:600; }
 .city-badge  { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); color:white; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:500; }
 
-/* ── KPI CARDS ── */
-div[data-testid="stMetric"] {
-    background:white !important; border:1px solid #d6e4f0 !important;
-    border-radius:14px !important; padding:20px 18px !important;
-    box-shadow:0 2px 12px rgba(16,110,190,.08) !important;
-    transition:transform .2s !important;
-}
+div[data-testid="stMetric"] { background:white !important; border:1px solid #d6e4f0 !important; border-radius:14px !important; padding:20px 18px !important; box-shadow:0 2px 12px rgba(16,110,190,.08) !important; transition:transform .2s !important; }
 div[data-testid="stMetric"]:hover { transform:translateY(-2px) !important; }
 div[data-testid="stMetricLabel"]  { font-size:11px!important; font-weight:600!important; text-transform:uppercase!important; letter-spacing:1px!important; color:#6b7e93!important; }
 div[data-testid="stMetricValue"]  { font-family:'Playfair Display',serif!important; font-size:2rem!important; font-weight:800!important; color:#106EBE!important; }
 div[data-testid="stMetricDelta"]  { font-size:12px!important; color:#0bd4a0!important; }
 
-/* ── MISC ── */
 .stDataFrame { border-radius:12px!important; border:1px solid #d6e4f0!important; overflow:hidden!important; }
 .stDownloadButton>button { background:#106EBE!important; color:white!important; border:none!important; border-radius:10px!important; font-weight:600!important; font-size:13px!important; padding:10px 16px!important; width:100%!important; }
 .stDownloadButton>button:hover { background:#1a82d8!important; }
@@ -208,35 +170,23 @@ def check_login(email, pw):
 # LOGIN PAGE
 # ══════════════════════════════════════════════════════════════════════════════
 def login_page():
-    # ── Style the right column as a white card directly ───────────────────────
-    # Key rule: NEVER wrap Streamlit widgets inside an HTML div.
-    # Instead, target the column container itself with CSS and put widgets directly.
     st.markdown(
         """
     <style>
-    /* Style the RIGHT column (2nd column) as white card */
     [data-testid="column"]:nth-child(2) > div:first-child {
-        background: white;
-        border-radius: 20px;
-        border: 1px solid #d6e4f0;
+        background: white; border-radius: 20px; border: 1px solid #d6e4f0;
         box-shadow: 0 8px 40px rgba(16,110,190,0.12);
-        padding: 40px 36px 36px 36px !important;
-        min-height: 560px;
+        padding: 40px 36px 36px 36px !important; min-height: 560px;
     }
-    /* Style the LEFT column (1st column) — matches lp-left height */
-    [data-testid="column"]:nth-child(1) > div:first-child {
-        min-height: 560px;
-    }
+    [data-testid="column"]:nth-child(1) > div:first-child { min-height: 560px; }
     </style>
     """,
         unsafe_allow_html=True,
     )
 
     st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-
     left_col, right_col = st.columns([1, 1], gap="medium")
 
-    # ── LEFT — navy decorative panel (HTML only, no widgets) ─────────────────
     with left_col:
         st.markdown(
             """
@@ -259,8 +209,6 @@ def login_page():
             unsafe_allow_html=True,
         )
 
-    # ── RIGHT — Streamlit widgets ONLY, no HTML wrapper ───────────────────────
-    # Title + subtitle as st.markdown (plain, no div wrapper)
     with right_col:
         st.markdown(
             """
@@ -274,11 +222,8 @@ def login_page():
             unsafe_allow_html=True,
         )
 
-        # ── ONLY st.* calls below — never inside any HTML div ────────────────
         email = st.text_input(
-            "Official Email",
-            placeholder="city@election.gov",
-            key="li_email",
+            "Official Email", placeholder="city@election.gov", key="li_email"
         )
         password = st.text_input(
             "Password",
@@ -286,7 +231,6 @@ def login_page():
             placeholder="Enter your password",
             key="li_password",
         )
-
         st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
         if st.button("➔  Sign In", use_container_width=True, key="li_btn"):
@@ -307,8 +251,7 @@ def login_page():
         <div style="background:#f4f8fd;border:1px solid #d6e4f0;border-radius:10px;
             padding:14px 16px;margin-top:16px;">
             <p style="font-size:11px;color:#6b7e93;font-weight:600;
-                text-transform:uppercase;letter-spacing:1px;margin:0 0 6px;">
-                Demo Credentials</p>
+                text-transform:uppercase;letter-spacing:1px;margin:0 0 6px;">Demo Credentials</p>
             <p style="font-size:12px;color:#106EBE;line-height:2;margin:0;">
                 Super Admin &rarr; admin@election.gov / Admin@123<br>
                 Delhi &rarr; delhi@election.gov / Delhi@123<br>
@@ -322,10 +265,8 @@ def login_page():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PLOTLY CHART HELPERS — white background, premium styled
+# CHART HELPERS — white background, premium styled
 # ══════════════════════════════════════════════════════════════════════════════
-
-# Chart colour palette — Navy + Mint + accent colours
 CP = [
     NAVY,
     MINT_DK,
@@ -338,8 +279,6 @@ CP = [
     "#0ea5e9",
     "#a78bfa",
 ]
-
-# Light grid / bg
 CH_BG = "#ffffff"
 CH_PLOT = "#ffffff"
 CH_GRID = "rgba(210,220,235,0.6)"
@@ -348,7 +287,6 @@ CH_TEXT = TEXT
 
 
 def _base(title_text, h=340, extra=None):
-    """Shared white-theme layout for all charts."""
     b = dict(
         paper_bgcolor=CH_BG,
         plot_bgcolor=CH_PLOT,
@@ -393,21 +331,13 @@ def _base(title_text, h=340, extra=None):
 
 
 def plotly_bar(cats, vals, title):
-    """
-    Vertical bar — gradient-style bars using individual colours,
-    rounded tops via text labels, value shown above each bar.
-    Single trace with color list = correct axis.
-    """
     mx = max(vals) if vals else 1
     fig = go.Figure(
         go.Bar(
             x=cats,
             y=[int(v) for v in vals],
             marker=dict(
-                color=CP[: len(cats)],
-                opacity=0.88,
-                line=dict(width=0),
-                cornerradius=6,
+                color=CP[: len(cats)], opacity=0.88, line=dict(width=0), cornerradius=6
             ),
             text=[f"<b>{v}</b>" for v in vals],
             textposition="outside",
@@ -442,10 +372,6 @@ def plotly_bar(cats, vals, title):
 
 
 def plotly_horizontal_bar(cats, vals, title):
-    """
-    Horizontal bar with value labels and colour-coded bars.
-    Subtle background bands to separate rows.
-    """
     mx = max(vals) if vals else 1
     fig = go.Figure(
         go.Bar(
@@ -453,10 +379,7 @@ def plotly_horizontal_bar(cats, vals, title):
             x=[int(v) for v in vals],
             orientation="h",
             marker=dict(
-                color=CP[: len(cats)],
-                opacity=0.88,
-                line=dict(width=0),
-                cornerradius=4,
+                color=CP[: len(cats)], opacity=0.88, line=dict(width=0), cornerradius=4
             ),
             text=[f"  <b>{v}</b>" for v in vals],
             textposition="outside",
@@ -493,24 +416,16 @@ def plotly_horizontal_bar(cats, vals, title):
 
 
 def plotly_donut(labels, vals, title):
-    """
-    Donut with navy/mint palette, total in centre,
-    pull effect on largest slice.
-    """
     total = sum(vals)
     mx_i = vals.index(max(vals)) if vals else 0
     pull = [0.05 if i == mx_i else 0 for i in range(len(vals))]
-
     fig = go.Figure(
         go.Pie(
             labels=labels,
             values=[int(v) for v in vals],
             hole=0.62,
             pull=pull,
-            marker=dict(
-                colors=CP[: len(labels)],
-                line=dict(color="#ffffff", width=3),
-            ),
+            marker=dict(colors=CP[: len(labels)], line=dict(color="#ffffff", width=3)),
             textinfo="percent+label",
             textfont=dict(size=11, color=CH_TEXT, family="Roboto"),
             hovertemplate="<b>%{label}</b><br>Votes: %{value}<br>%{percent}<extra></extra>",
@@ -551,16 +466,10 @@ def plotly_donut(labels, vals, title):
 
 
 def plotly_area(x_vals, y_vals, title):
-    """
-    Smooth area chart with gradient fill effect using layered traces.
-    Navy line + mint-tinted fill.
-    """
     y_int = [int(v) for v in y_vals]
     mx = max(y_int) if y_int else 1
     xi = list(range(len(x_vals)))
-
     fig = go.Figure()
-    # Fill area
     fig.add_trace(
         go.Scatter(
             x=xi,
@@ -572,7 +481,6 @@ def plotly_area(x_vals, y_vals, title):
             hoverinfo="skip",
         )
     )
-    # Main line
     fig.add_trace(
         go.Scatter(
             x=xi,
@@ -620,10 +528,6 @@ def plotly_area(x_vals, y_vals, title):
 
 
 def plotly_multiline(x_vals, series_dict, title):
-    """
-    Multi-line — clean individual lines, NO fill (avoids overlap mess).
-    Smooth spline curves, distinct colours per candidate.
-    """
     xi = list(range(len(x_vals)))
     fig = go.Figure()
     for i, (name, vals) in enumerate(series_dict.items()):
@@ -638,9 +542,7 @@ def plotly_multiline(x_vals, series_dict, title):
                     color=CP[i % len(CP)], width=2.8, shape="spline", smoothing=0.8
                 ),
                 marker=dict(
-                    color=CP[i % len(CP)],
-                    size=7,
-                    line=dict(color="#ffffff", width=1.8),
+                    color=CP[i % len(CP)], size=7, line=dict(color="#ffffff", width=1.8)
                 ),
                 text=x_vals,
                 hovertemplate=f"<b>{name}</b> · %{{text}}<br>Votes: %{{y}}<extra></extra>",
@@ -675,7 +577,6 @@ def plotly_multiline(x_vals, series_dict, title):
 
 
 def plotly_stacked_bar(categories, series, title):
-    """Stacked bar — one trace per party, stacked on x=cities."""
     fig = go.Figure()
     for i, (name, vals) in enumerate(series.items()):
         fig.add_trace(
@@ -720,23 +621,53 @@ CHART_CONFIG = dict(displayModeBar=False, responsive=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DATABASE
+# DATABASE  ←  CHANGED: sqlite3 → psycopg2 / Supabase
 # ══════════════════════════════════════════════════════════════════════════════
-DB_PATH = "voting_system.db"
+def _get_db_url():
+    """
+    Priority:
+      1. st.secrets["DATABASE_URL"]  — Streamlit Cloud secrets
+      2. os.environ["DATABASE_URL"]  — local .env / Render env var
+    """
+    try:
+        return st.secrets["DATABASE_URL"]
+    except Exception:
+        return os.environ.get("DATABASE_URL", "")
 
 
 @st.cache_resource
 def get_conn():
-    return sqlite3.connect(DB_PATH, check_same_thread=False)
+    """
+    Persistent psycopg2 connection — cached for the whole session.
+    sslmode=require is mandatory for Supabase.
+    """
+    url = _get_db_url()
+    if not url:
+        st.error("❌ DATABASE_URL is not set. Check your .env or Streamlit secrets.")
+        st.stop()
+    return psycopg2.connect(url, sslmode="require")
 
 
 @st.cache_data(ttl=8)
 def load_data():
-    c = get_conn()
-    voters = pd.read_sql_query("SELECT * FROM voters", c)
-    votes = pd.read_sql_query("SELECT * FROM votes", c)
-    migrated = pd.read_sql_query("SELECT * FROM migrated_votes", c)
-    frauds = pd.read_sql_query("SELECT * FROM fraud_logs", c)
+    """
+    Load all 4 tables from Supabase via pandas.
+    pd.read_sql_query works with psycopg2 connections directly.
+    """
+    conn = get_conn()
+    try:
+        voters = pd.read_sql_query("SELECT * FROM voters", conn)
+        votes = pd.read_sql_query("SELECT * FROM votes", conn)
+        migrated = pd.read_sql_query("SELECT * FROM migrated_votes", conn)
+        frauds = pd.read_sql_query("SELECT * FROM fraud_logs", conn)
+    except Exception as e:
+        # Connection may have timed out — clear cache and reconnect
+        st.cache_resource.clear()
+        conn = get_conn()
+        voters = pd.read_sql_query("SELECT * FROM voters", conn)
+        votes = pd.read_sql_query("SELECT * FROM votes", conn)
+        migrated = pd.read_sql_query("SELECT * FROM migrated_votes", conn)
+        frauds = pd.read_sql_query("SELECT * FROM fraud_logs", conn)
     return voters, votes, migrated, frauds
 
 
@@ -747,7 +678,7 @@ def filter_city(df, col, city):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN DASHBOARD
+# MAIN DASHBOARD  (unchanged from original)
 # ══════════════════════════════════════════════════════════════════════════════
 def show_dashboard():
     name = st.session_state.officer_name
@@ -756,7 +687,6 @@ def show_dashboard():
     city_lbl = "All Cities" if is_admin else city
     role_lbl = "SUPER ADMIN" if is_admin else f"OFFICER · {city.upper()}"
 
-    # ── NAVBAR ────────────────────────────────────────────────────────────────
     st.markdown(
         f"""
     <div class="topnav">
@@ -776,7 +706,6 @@ def show_dashboard():
         unsafe_allow_html=True,
     )
 
-    # ── STATUS ROW ────────────────────────────────────────────────────────────
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     c1, c2, c3 = st.columns([3, 2, 1])
     with c1:
@@ -790,7 +719,6 @@ def show_dashboard():
             st.session_state.officer_city = ""
             st.rerun()
 
-    # ── LOAD & FILTER ─────────────────────────────────────────────────────────
     voters_all, votes_all, migrated_all, frauds_all = load_data()
 
     voters = filter_city(voters_all, "city", city)
@@ -833,7 +761,6 @@ def show_dashboard():
     else:
         new_today = 0
 
-    # ── KPI CARDS ─────────────────────────────────────────────────────────────
     st.markdown(
         '<p class="sec-h2">📊 Election Overview</p><div class="sec-div"></div>',
         unsafe_allow_html=True,
@@ -850,7 +777,6 @@ def show_dashboard():
     with k5:
         st.metric("⚠️ Fraud Alerts", fraud_count, delta_color="inverse")
 
-    # ── TURNOUT BAR ───────────────────────────────────────────────────────────
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(
         '<p class="sec-h2">📈 Voter Turnout</p><div class="sec-div"></div>',
@@ -864,17 +790,12 @@ def show_dashboard():
             f"""
         <div style="background:white;padding:22px 26px;border-radius:14px;
             border:1px solid #d6e4f0;box-shadow:0 2px 12px rgba(16,110,190,.06);">
-            <p style="font-family:'Playfair Display',serif;font-size:15px;
-                font-weight:700;color:#106EBE;margin:0 0 12px;">
-                Turnout — {city_lbl}
-            </p>
-            <div class="turnout-bg">
-                <div class="turnout-fill" style="width:{fw}%;">{turnout_pct:.1f}%</div>
-            </div>
+            <p style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#106EBE;margin:0 0 12px;">
+                Turnout — {city_lbl}</p>
+            <div class="turnout-bg"><div class="turnout-fill" style="width:{fw}%;">{turnout_pct:.1f}%</div></div>
             <p style="color:#6b7e93;font-size:13px;margin:6px 0 0;">
                 <strong style="color:#106EBE;">{total_votes}</strong> of
-                <strong style="color:#106EBE;">{total_voters}</strong> registered voters
-            </p>
+                <strong style="color:#106EBE;">{total_voters}</strong> registered voters</p>
         </div>
         """,
             unsafe_allow_html=True,
@@ -887,7 +808,6 @@ def show_dashboard():
         )
         st.metric("👥 Remaining", total_voters - total_votes)
 
-    # ── BUILD COMBINED VOTES DF ───────────────────────────────────────────────
     vlist = []
     if not votes.empty:
         vn = votes.copy()
@@ -905,7 +825,6 @@ def show_dashboard():
     votes_df = pd.concat(vlist, ignore_index=True) if vlist else pd.DataFrame()
     has_votes = not votes_df.empty and "candidate" in votes_df.columns
 
-    # ── CHARTS ────────────────────────────────────────────────────────────────
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(
         '<p class="sec-h2">📊 Vote Analytics</p><div class="sec-div"></div>',
@@ -917,7 +836,6 @@ def show_dashboard():
         cands = cc.index.tolist()
         cvals = cc.values.tolist()
 
-        # ROW 1 — vertical bar + donut
         r1, r2 = st.columns(2)
         with r1:
             st.plotly_chart(
@@ -932,7 +850,6 @@ def show_dashboard():
                 config=CHART_CONFIG,
             )
 
-        # ROW 2 — horizontal bar + area timeline
         r3, r4 = st.columns(2)
         with r3:
             si = sorted(range(len(cvals)), key=lambda i: cvals[i])
@@ -970,7 +887,6 @@ def show_dashboard():
             else:
                 st.info("No timestamp data available.")
 
-        # ROW 3 — multi-line per candidate over time (if enough data)
         if "vote_time" in votes_df.columns and len(votes_df) > 2:
             vt2 = votes_df.copy()
             vt2["vote_time"] = pd.to_datetime(vt2["vote_time"], errors="coerce")
@@ -986,14 +902,11 @@ def show_dashboard():
                     for cand in cands
                 }
                 st.plotly_chart(
-                    plotly_multiline(
-                        hours, series, "📉 Candidate Votes Over Time (Multi-line)"
-                    ),
+                    plotly_multiline(hours, series, "📉 Candidate Votes Over Time"),
                     use_container_width=True,
                     config=CHART_CONFIG,
                 )
 
-        # ROW 4 — stacked bar by city (admin only)
         if is_admin and "vote_city" in votes_df.columns:
             cities = [c for c in votes_df["vote_city"].dropna().unique().tolist() if c]
             if len(cities) > 1:
@@ -1010,14 +923,11 @@ def show_dashboard():
                     for cand in cands
                 }
                 st.plotly_chart(
-                    plotly_stacked_bar(
-                        cities, series, "🏙️ Votes by City × Candidate (Stacked)"
-                    ),
+                    plotly_stacked_bar(cities, series, "🏙️ Votes by City × Candidate"),
                     use_container_width=True,
                     config=CHART_CONFIG,
                 )
 
-        # ROW 5 — vote type + city registered (admin only)
         if is_admin:
             r5, r6 = st.columns(2)
             with r5:
@@ -1025,9 +935,7 @@ def show_dashboard():
                 if nc + mc > 0:
                     st.plotly_chart(
                         plotly_bar(
-                            ["Normal", "Migrated"],
-                            [nc, mc],
-                            "🌍 Normal vs Migrated Votes",
+                            ["Normal", "Migrated"], [nc, mc], "🌍 Normal vs Migrated"
                         ),
                         use_container_width=True,
                         config=CHART_CONFIG,
@@ -1039,13 +947,12 @@ def show_dashboard():
                         plotly_horizontal_bar(
                             cv.index.tolist()[::-1],
                             cv.values.tolist()[::-1],
-                            "🏙️ Registered Voters per City",
+                            "🏙️ Voters per City",
                         ),
                         use_container_width=True,
                         config=CHART_CONFIG,
                     )
 
-        # ── RESULTS TABLE ─────────────────────────────────────────────────────
         st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown(
             '<p class="sec-h2">🏆 Candidate Results</p><div class="sec-div"></div>',
@@ -1057,11 +964,9 @@ def show_dashboard():
         res["Share %"] = (res["Votes"] / total_v * 100).round(1).astype(str) + "%"
         res.insert(0, "Rank", range(1, len(res) + 1))
         st.dataframe(res, use_container_width=True, hide_index=True)
-
     else:
         st.info("📊 No votes recorded yet. Charts will appear once voting begins.")
 
-    # ── FRAUD ─────────────────────────────────────────────────────────────────
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(
         '<p class="sec-h2">⚠️ Fraud Detection</p><div class="sec-div"></div>',
@@ -1132,7 +1037,6 @@ def show_dashboard():
     else:
         st.success("✅ No fraud detected — all votes are legitimate!")
 
-    # ── LIVE DATA ─────────────────────────────────────────────────────────────
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(
         '<p class="sec-h2">📡 Live Voting Data</p><div class="sec-div"></div>',
@@ -1160,7 +1064,6 @@ def show_dashboard():
     else:
         st.info("No votes recorded yet.")
 
-    # ── REGISTRY ──────────────────────────────────────────────────────────────
     if is_admin and not voters_all.empty:
         st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown(
@@ -1172,7 +1075,6 @@ def show_dashboard():
         ):
             st.dataframe(voters_all, use_container_width=True, hide_index=True)
 
-    # ── EXPORT ────────────────────────────────────────────────────────────────
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(
         '<p class="sec-h2">📥 Export</p><div class="sec-div"></div>',
@@ -1242,7 +1144,6 @@ def show_dashboard():
             use_container_width=True,
         )
 
-    # ── FOOTER ────────────────────────────────────────────────────────────────
     st.markdown(
         """
     <div class="dash-footer">
