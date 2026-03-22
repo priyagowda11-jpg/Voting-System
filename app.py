@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, jsonify, session
-import psycopg2  # type: ignore
-import psycopg2.extras  # type: ignore
+import psycopg2
+import psycopg2.extras
 import os
 from datetime import datetime
 import socket
-from dotenv import load_dotenv  # type: ignore
+from dotenv import load_dotenv
 from auth_routes import auth_bp, login_required  # type: ignore
 
 load_dotenv()  # loads DATABASE_URL from .env locally; Render uses env vars directly
@@ -614,10 +614,26 @@ def get_local_ip():
         return "localhost"
 
 
-if __name__ == "__main__":
+# ── Runs when gunicorn imports this file (production) ────────────────────────
+# Must be at module level — gunicorn never calls if __name__ == "__main__"
+try:
     init_db()
+    print("✅ Database initialized (gunicorn startup)")
+except Exception as e:
+    print(f"⚠️  DB init warning at startup: {e} — continuing anyway")
+
+
+if __name__ == "__main__":
+    # Local development only
+    try:
+        init_db()
+        print("✅ Database initialized (local)")
+    except Exception as e:
+        print(f"⚠️  DB init warning: {e} — app still starting")
+
     local_ip = get_local_ip()
-    port = 5000
+    # Render sets PORT env var — use it, fall back to 5000 locally
+    port = int(os.environ.get("PORT", 5000))
 
     print("\n" + "=" * 70)
     print("🗳️  AADHAAR VOTING SYSTEM — SUPABASE (PostgreSQL)")
@@ -627,4 +643,4 @@ if __name__ == "__main__":
     print("\n⚠️  After deploy, update ESP32 to your Render URL!")
     print("=" * 70 + "\n")
 
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
