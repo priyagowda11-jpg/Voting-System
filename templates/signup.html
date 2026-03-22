@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Admin Account — Aadhaar Voting System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --navy:    #106EBE;
+            --navy-dk: #0a4f8c;
+            --navy-lt: #1a82d8;
+            --mint:    #0FFCBE;
+            --mint-dk: #0bd4a0;
+            --white:   #ffffff;
+            --bg:      #f4f8fd;
+            --text:    #1a2b3c;
+            --muted:   #6b7e93;
+            --border:  #d6e4f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Roboto', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+        }
+
+        .signup-wrapper {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        /* ── BRAND TOP ── */
+        .brand-top {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand-top-icon {
+            width: 56px; height: 56px;
+            background: var(--navy);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            margin: 0 auto 12px;
+        }
+
+        .brand-top h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .brand-top p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+        /* ── STEPPER ── */
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 28px;
+            gap: 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-circle {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            border: 2px solid var(--border);
+            color: var(--muted);
+            background: var(--white);
+            transition: all 0.3s;
+        }
+
+        .step-circle.active {
+            background: var(--navy);
+            border-color: var(--navy);
+            color: var(--white);
+        }
+
+        .step-circle.done {
+            background: var(--mint-dk);
+            border-color: var(--mint-dk);
+            color: var(--white);
+        }
+
+        .step-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            transition: color 0.3s;
+        }
+
+        .step-label.active { color: var(--navy); font-weight: 600; }
+        .step-label.done   { color: var(--mint-dk); }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            margin: 0 12px;
+            max-width: 80px;
+            transition: background 0.3s;
+        }
+
+        .step-line.done { background: var(--mint-dk); }
+
+        /* ── CARD ── */
+        .signup-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 36px;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(16,110,190,0.10);
+        }
+
+        .card-header {
+            margin-bottom: 24px;
+        }
+
+        .card-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 4px;
+        }
+
+        .card-header p { font-size: 13px; color: var(--muted); }
+        .header-bar { height: 3px; width: 40px; background: var(--mint); border-radius: 2px; margin-top: 8px; }
+
+        /* FLASH */
+        .flash-msg {
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 18px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .flash-danger  { background: #fde8e8; color: #8c0a0a; border-left: 4px solid #dc3545; }
+        .flash-success { background: #e6fdf5; color: #0a5c3c; border-left: 4px solid var(--mint-dk); }
+        .flash-info    { background: #e8f4fd; color: #0a4f8c; border-left: 4px solid var(--navy); }
+
+        /* FORM STEPS */
+        .form-step { display: none; }
+        .form-step.active { display: block; }
+
+        /* FORM FIELDS */
+        .form-group { margin-bottom: 18px; }
+
+        .form-label {
+            display: block;
+            font-size: 13px; font-weight: 500;
+            color: var(--text); margin-bottom: 6px;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap i.prefix {
+            position: absolute;
+            left: 13px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted); font-size: 13px;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px 11px 38px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px; color: var(--text);
+            background: #fafcfe;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(16,110,190,0.10);
+            background: var(--white);
+        }
+
+        .form-control::placeholder { color: #aab8c8; }
+
+        .form-control.error  { border-color: #dc3545 !important; }
+        .form-control.valid  { border-color: var(--mint-dk) !important; }
+
+        .toggle-pw {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            cursor: pointer; background: none;
+            border: none; padding: 0;
+            font-size: 14px;
+        }
+
+        .toggle-pw:hover { color: var(--navy); }
+
+        /* TWO-COL ROW */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        /* PASSWORD RULES */
+        .pw-rules {
+            background: #f4f8fd;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .pw-rules.show { display: block; }
+
+        .pw-rule {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 5px;
+            transition: color 0.2s;
+        }
+
+        .pw-rule:last-child { margin-bottom: 0; }
+
+        .pw-rule.pass { color: var(--mint-dk); }
+        .pw-rule.pass i { color: var(--mint-dk); }
+        .pw-rule i { color: var(--border); font-size: 11px; }
+
+        /* STRENGTH BAR */
+        .strength-wrap { margin-top: 8px; }
+        .strength-bar-bg {
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .strength-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: all 0.3s;
+            width: 0%;
+        }
+
+        .strength-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        /* OTP INPUT */
+        .otp-input {
+            text-align: center;
+            font-size: 28px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            letter-spacing: 10px;
+            color: var(--navy);
+            padding: 16px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            background: #f4f8fd;
+        }
+
+        .otp-input:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(16,110,190,0.12);
+            background: var(--white);
+        }
+
+        .otp-hint {
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .otp-hint strong { color: var(--navy); }
+
+        /* BUTTONS */
+        .btn-primary {
+            width: 100%;
+            background: var(--navy);
+            color: var(--white);
+            border: none; border-radius: 10px;
+            padding: 13px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--navy-lt);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(16,110,190,0.3);
+        }
+
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--navy);
+            border: 1.5px solid var(--border);
+            border-radius: 10px; padding: 11px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center;
+            justify-content: center; gap: 6px;
+            width: 100%; margin-top: 8px;
+        }
+
+        .btn-outline:hover { border-color: var(--navy); background: #f4f8fd; }
+
+        .spinner {
+            width: 17px; height: 17px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* FOOTER LINK */
+        .form-footer {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .form-footer a {
+            color: var(--navy); font-weight: 600;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; }
+            .signup-card { padding: 24px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="signup-wrapper">
+
+    <!-- BRAND TOP -->
+    <div class="brand-top">
+        <div class="brand-top-icon">🗳️</div>
+        <h1>Create Admin Account</h1>
+        <p>Aadhaar Voting System — Admin Portal</p>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper" id="stepper">
+        <div class="step">
+            <div class="step-circle active" id="circle1">1</div>
+            <span class="step-label active" id="label1">Your Details</span>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step">
+            <div class="step-circle" id="circle2">2</div>
+            <span class="step-label" id="label2">Verify OTP</span>
+        </div>
+    </div>
+
+    <!-- CARD -->
+    <div class="signup-card">
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-msg flash-{{ category }}">
+                        <i class="fas fa-{% if category == 'danger' %}times-circle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- ═══ STEP 1: DETAILS ═══ -->
+        <div class="form-step {% if step == 1 or not step %}active{% endif %}" id="step1">
+            <div class="card-header">
+                <h2>Account Details</h2>
+                <p>Fill in your information to get started</p>
+                <div class="header-bar"></div>
+            </div>
+
+            <form method="POST" action="/signup" id="signupForm">
+                <input type="hidden" name="form_step" value="1">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-user prefix"></i>
+                            <input type="text" name="name" class="form-control"
+                                   placeholder="Your name" required
+                                   value="{{ session.signup_data.name if session.signup_data else '' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-phone prefix"></i>
+                            <input type="tel" name="phone" class="form-control"
+                                   placeholder="10-digit number" maxlength="10" required
+                                   value="{{ session.signup_data.phone if session.signup_data else '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope prefix"></i>
+                        <input type="email" name="email" class="form-control"
+                               placeholder="admin@example.com" required
+                               value="{{ session.signup_data.email if session.signup_data else '' }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock prefix"></i>
+                        <input type="password" name="password" id="pwField"
+                               class="form-control" placeholder="Create a strong password"
+                               required oninput="checkPassword(this.value)"
+                               onfocus="document.getElementById('pwRules').classList.add('show')">
+                        <button type="button" class="toggle-pw" onclick="togglePw('pwField','eye1')">
+                            <i class="fas fa-eye" id="eye1"></i>
+                        </button>
+                    </div>
+
+                    <!-- STRENGTH BAR -->
+                    <div class="strength-wrap" id="strengthWrap" style="display:none;">
+                        <div class="strength-bar-bg">
+                            <div class="strength-bar-fill" id="strengthFill"></div>
+                        </div>
+                        <span class="strength-text" id="strengthText"></span>
+                    </div>
+
+                    <!-- RULES -->
+                    <div class="pw-rules" id="pwRules">
+                        <div class="pw-rule" id="rule-len">
+                            <i class="fas fa-circle"></i> Minimum 8 characters
+                        </div>
+                        <div class="pw-rule" id="rule-upper">
+                            <i class="fas fa-circle"></i> At least one uppercase letter
+                        </div>
+                        <div class="pw-rule" id="rule-num">
+                            <i class="fas fa-circle"></i> At least one number
+                        </div>
+                        <div class="pw-rule" id="rule-special">
+                            <i class="fas fa-circle"></i> At least one special character (!@#$%^&amp;*)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock prefix"></i>
+                        <input type="password" name="confirm_password" id="cpwField"
+                               class="form-control" placeholder="Re-enter password" required
+                               oninput="checkConfirm(this.value)">
+                        <button type="button" class="toggle-pw" onclick="togglePw('cpwField','eye2')">
+                            <i class="fas fa-eye" id="eye2"></i>
+                        </button>
+                    </div>
+                    <div id="matchMsg" style="font-size:12px; margin-top:5px;"></div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="step1Btn">
+                    <span id="s1BtnText"><i class="fas fa-arrow-right"></i> Continue to OTP</span>
+                    <div class="spinner" id="s1Spinner" style="display:none;"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- ═══ STEP 2: OTP ═══ -->
+        <div class="form-step {% if step == 2 %}active{% endif %}" id="step2">
+            <div class="card-header">
+                <h2>Verify OTP</h2>
+                <p>Enter the 6-digit code to confirm your account</p>
+                <div class="header-bar"></div>
+            </div>
+
+            <form method="POST" action="/signup/verify" id="otpForm">
+                <input type="hidden" name="form_step" value="2">
+
+                <div class="form-group">
+                    <label class="form-label" style="text-align:center; display:block;">6-Digit OTP</label>
+                    <input type="text" name="otp" class="form-control otp-input"
+                           placeholder="——————" maxlength="6"
+                           pattern="[0-9]{6}" required
+                           oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    <div class="otp-hint">
+                        Check your terminal for the OTP.<br>
+                        <small>(Demo mode — real deployment sends via email/SMS)</small>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="otpBtn">
+                    <span id="otpBtnText"><i class="fas fa-check"></i> Verify &amp; Create Account</span>
+                    <div class="spinner" id="otpSpinner" style="display:none;"></div>
+                </button>
+
+                <a href="/signup" class="btn-outline">
+                    <i class="fas fa-arrow-left"></i> Back to Details
+                </a>
+            </form>
+        </div>
+
+    </div><!-- end card -->
+
+    <div class="form-footer">
+        Already have an account? <a href="/login">Sign In →</a>
+    </div>
+
+</div><!-- end wrapper -->
+
+<script>
+    // ── STEPPER STATE ─────────────────────────────────────────────────────────
+    {% if step == 2 %}
+    document.getElementById('circle1').classList.replace('active', 'done');
+    document.getElementById('circle1').innerHTML = '<i class="fas fa-check" style="font-size:11px;"></i>';
+    document.getElementById('label1').classList.replace('active', 'done');
+    document.getElementById('line1').classList.add('done');
+    document.getElementById('circle2').classList.add('active');
+    document.getElementById('label2').classList.add('active');
+    {% endif %}
+
+    // ── SHOW/HIDE PASSWORD ───────────────────────────────────────────────────
+    function togglePw(fieldId, iconId) {
+        const f = document.getElementById(fieldId);
+        const i = document.getElementById(iconId);
+        if (f.type === 'password') {
+            f.type = 'text';
+            i.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            f.type = 'password';
+            i.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    // ── PASSWORD RULES CHECK ──────────────────────────────────────────────────
+    function checkPassword(val) {
+        const rules = {
+            'rule-len':     val.length >= 8,
+            'rule-upper':   /[A-Z]/.test(val),
+            'rule-num':     /[0-9]/.test(val),
+            'rule-special': /[!@#$%^&*]/.test(val),
+        };
+
+        let passed = 0;
+        for (const [id, ok] of Object.entries(rules)) {
+            const el = document.getElementById(id);
+            if (ok) {
+                el.classList.add('pass');
+                el.querySelector('i').classList.replace('fa-circle', 'fa-check-circle');
+                passed++;
+            } else {
+                el.classList.remove('pass');
+                el.querySelector('i').classList.replace('fa-check-circle', 'fa-circle');
+            }
+        }
+
+        // Strength bar
+        const sw = document.getElementById('strengthWrap');
+        const sf = document.getElementById('strengthFill');
+        const st = document.getElementById('strengthText');
+
+        if (val.length > 0) {
+            sw.style.display = 'block';
+            const pct = (passed / 4) * 100;
+            sf.style.width = pct + '%';
+
+            if (passed <= 1)      { sf.style.background = '#dc3545'; st.style.color = '#dc3545'; st.textContent = 'Weak'; }
+            else if (passed === 2) { sf.style.background = '#f59e0b'; st.style.color = '#f59e0b'; st.textContent = 'Fair'; }
+            else if (passed === 3) { sf.style.background = '#106EBE'; st.style.color = '#106EBE'; st.textContent = 'Good'; }
+            else                   { sf.style.background = '#0bd4a0'; st.style.color = '#0bd4a0'; st.textContent = 'Strong ✓'; }
+        } else {
+            sw.style.display = 'none';
+        }
+
+        // Re-check confirm match
+        const cp = document.getElementById('cpwField').value;
+        if (cp) checkConfirm(cp);
+    }
+
+    // ── CONFIRM PASSWORD CHECK ────────────────────────────────────────────────
+    function checkConfirm(val) {
+        const pw  = document.getElementById('pwField').value;
+        const msg = document.getElementById('matchMsg');
+        const cf  = document.getElementById('cpwField');
+
+        if (val.length === 0) { msg.textContent = ''; return; }
+
+        if (val === pw) {
+            msg.innerHTML = '<span style="color:#0bd4a0;"><i class="fas fa-check-circle"></i> Passwords match</span>';
+            cf.classList.add('valid'); cf.classList.remove('error');
+        } else {
+            msg.innerHTML = '<span style="color:#dc3545;"><i class="fas fa-times-circle"></i> Passwords do not match</span>';
+            cf.classList.add('error'); cf.classList.remove('valid');
+        }
+    }
+
+    // ── SPINNER ON SUBMIT ─────────────────────────────────────────────────────
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        const pw  = document.getElementById('pwField').value;
+        const cpw = document.getElementById('cpwField').value;
+
+        if (pw !== cpw) {
+            e.preventDefault();
+            document.getElementById('cpwField').classList.add('error');
+            return;
+        }
+
+        document.getElementById('s1BtnText').style.display    = 'none';
+        document.getElementById('s1Spinner').style.display    = 'block';
+        document.getElementById('step1Btn').disabled = true;
+    });
+
+    document.getElementById('otpForm').addEventListener('submit', function() {
+        document.getElementById('otpBtnText').style.display = 'none';
+        document.getElementById('otpSpinner').style.display = 'block';
+        document.getElementById('otpBtn').disabled = true;
+    });
+
+    // ── AUTO-DISMISS FLASH ────────────────────────────────────────────────────
+    setTimeout(function() {
+        document.querySelectorAll('.flash-msg').forEach(function(el) {
+            el.style.transition = 'opacity 0.5s, height 0.5s, padding 0.5s, margin 0.5s';
+            el.style.opacity  = '0';
+            el.style.height   = '0';
+            el.style.padding  = '0';
+            el.style.margin   = '0';
+            el.style.overflow = 'hidden';
+        });
+    }, 4000);
+</script>
+</body>
+</html>

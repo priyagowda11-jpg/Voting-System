@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote Cast — Aadhaar Voting System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --navy:    #106EBE;
+            --navy-dk: #0a4f8c;
+            --navy-lt: #1a82d8;
+            --mint:    #0FFCBE;
+            --mint-dk: #0bd4a0;
+            --white:   #ffffff;
+            --bg:      #f4f8fd;
+            --text:    #1a2b3c;
+            --muted:   #6b7e93;
+            --border:  #d6e4f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Roboto', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── TOP NAVBAR ── */
+        .topnav {
+            height: 68px;
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            box-shadow: 0 2px 16px rgba(16,110,190,0.25);
+            flex-shrink: 0;
+        }
+
+        .nav-brand {
+            display: flex; align-items: center; gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-brand-icon {
+            width: 40px; height: 40px;
+            background: var(--mint);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+
+        .nav-brand-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 17px;
+            color: var(--white);
+        }
+
+        .nav-brand-sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        .btn-back {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--white);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 8px;
+            font-family: 'Roboto', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* ── PAGE CONTENT ── */
+        .result-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 48px 24px;
+        }
+
+        .result-container {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        /* ── SUCCESS BANNER ── */
+        .success-banner {
+            background: var(--navy);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-banner::before {
+            content: '';
+            position: absolute;
+            bottom: -30px; right: -30px;
+            width: 160px; height: 160px;
+            background: rgba(15,252,190,0.08);
+            border-radius: 50%;
+        }
+
+        .success-banner::after {
+            content: '';
+            position: absolute;
+            top: -20px; left: -20px;
+            width: 100px; height: 100px;
+            background: rgba(15,252,190,0.06);
+            border-radius: 50%;
+        }
+
+        .check-circle {
+            width: 80px; height: 80px;
+            background: var(--mint);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative; z-index: 1;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        .success-banner h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 8px;
+            position: relative; z-index: 1;
+        }
+
+        .success-banner .tagline {
+            font-size: 15px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 0;
+            position: relative; z-index: 1;
+        }
+
+        /* ── RESULTS CARD ── */
+        .results-card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(16,110,190,0.1);
+            margin-bottom: 24px;
+        }
+
+        .results-card-header {
+            background: var(--navy);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-card-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: var(--white);
+            margin: 0;
+        }
+
+        .results-card-header i { color: var(--mint); }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table thead tr {
+            background: #f0f6fc;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .results-table thead th {
+            padding: 14px 24px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            text-align: left;
+        }
+
+        .results-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .results-table tbody tr:last-child { border-bottom: none; }
+        .results-table tbody tr:hover { background: #f8fbff; }
+
+        .results-table td {
+            padding: 16px 24px;
+            font-size: 15px;
+            color: var(--text);
+        }
+
+        .results-table td:first-child {
+            font-weight: 600;
+            font-family: 'Playfair Display', serif;
+            color: var(--navy);
+        }
+
+        .vote-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .vote-bar-wrap {
+            width: 120px;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .vote-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--navy) 0%, var(--mint-dk) 100%);
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        /* ── BACK BUTTON SECTION ── */
+        .action-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .btn-primary-v {
+            background: var(--navy);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            padding: 13px 32px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary-v:hover {
+            background: var(--navy-lt);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(16,110,190,0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--muted);
+        }
+
+        .empty-state i { font-size: 40px; margin-bottom: 12px; color: var(--border); }
+        .empty-state p { font-size: 15px; }
+
+        @media (max-width: 600px) {
+            .topnav { padding: 0 16px; }
+            .success-banner { padding: 28px 20px; }
+            .success-banner h1 { font-size: 22px; }
+            .results-table td { padding: 12px 16px; }
+            .vote-bar-wrap { width: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAVBAR -->
+    <nav class="topnav">
+        <a class="nav-brand" href="/">
+            <div class="nav-brand-icon">🗳️</div>
+            <div>
+                <span class="nav-brand-title">Aadhaar Voting System</span>
+                <span class="nav-brand-sub">Secure · Verified · Democratic</span>
+            </div>
+        </a>
+        <a href="/" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Portal
+        </a>
+    </nav>
+
+    <!-- RESULT CONTENT -->
+    <div class="result-wrapper">
+        <div class="result-container">
+
+            <!-- SUCCESS BANNER -->
+            <div class="success-banner">
+                <div class="check-circle">✅</div>
+                <h1>Vote Cast Successfully!</h1>
+                <p class="tagline">Your voice has been counted. Thank you for participating in democracy.</p>
+            </div>
+
+            <!-- RESULTS TABLE -->
+            <div class="results-card">
+                <div class="results-card-header">
+                    <i class="fas fa-chart-bar"></i>
+                    <h2>Current Election Results</h2>
+                </div>
+
+                {% if data %}
+                    {% set max_votes = data | map(attribute=1) | max %}
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Candidate / Party</th>
+                                <th>Votes</th>
+                                <th>Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set total = data | map(attribute=1) | sum %}
+                            {% for c, count in data %}
+                            <tr>
+                                <td style="color:var(--muted); font-family:'Roboto',sans-serif; font-weight:500;">{{ loop.index }}</td>
+                                <td>{{ c }}</td>
+                                <td>
+                                    <div class="vote-count">
+                                        <strong>{{ count }}</strong>
+                                        <div class="vote-bar-wrap">
+                                            <div class="vote-bar-fill" style="width:{{ ((count / max_votes) * 100) | int }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--muted); font-size:13px;">
+                                    {% if total > 0 %}{{ ((count / total) * 100) | round(1) }}%{% else %}—{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-ballot-check"></i>
+                        <p>No votes have been cast yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="action-row">
+                <a href="/" class="btn-primary-v">
+                    <i class="fas fa-home"></i> Return to Voting Portal
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

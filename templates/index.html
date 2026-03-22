@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aadhaar Voting System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --navy:    #106EBE;
+            --navy-dk: #0a4f8c;
+            --navy-lt: #1a82d8;
+            --mint:    #0FFCBE;
+            --mint-dk: #0bd4a0;
+            --white:   #ffffff;
+            --bg:      #f4f8fd;
+            --text:    #1a2b3c;
+            --muted:   #6b7e93;
+            --border:  #d6e4f0;
+            --shadow:  0 4px 24px rgba(16, 110, 190, 0.10);
+            --shadow-lg: 0 8px 40px rgba(16, 110, 190, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Roboto', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── TOP NAVBAR ── */
+        .topnav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 68px;
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            z-index: 1000;
+            box-shadow: 0 2px 16px rgba(16,110,190,0.25);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-brand-icon {
+            width: 40px; height: 40px;
+            background: var(--mint);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .nav-brand-text {
+            display: flex; flex-direction: column;
+        }
+
+        .nav-brand-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 17px;
+            color: var(--white);
+            line-height: 1.1;
+        }
+
+        .nav-brand-sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-tab {
+            padding: 8px 20px;
+            border-radius: 8px;
+            color: rgba(255,255,255,0.75);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: all 0.2s;
+            font-family: 'Roboto', sans-serif;
+            display: flex; align-items: center; gap: 7px;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.12);
+            color: var(--white);
+        }
+
+        .nav-tab.active {
+            background: var(--mint);
+            color: var(--navy-dk);
+            font-weight: 600;
+        }
+
+        .nav-tab.active i { color: var(--navy-dk); }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .nav-user i { color: var(--mint); font-size: 15px; }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--white);
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Roboto', sans-serif;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 80, 80, 0.3);
+            border-color: rgba(255,80,80,0.5);
+        }
+
+        /* ── PAGE WRAPPER ── */
+        .page-wrapper {
+            margin-top: 68px;
+            min-height: calc(100vh - 68px);
+            padding: 40px 32px;
+            max-width: 860px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ── SECTIONS ── */
+        .page-section { display: none; animation: fadeUp 0.35s ease; }
+        .page-section.active { display: block; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+            margin-bottom: 28px;
+        }
+
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 4px;
+        }
+
+        .section-header p {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .section-divider {
+            height: 3px;
+            width: 50px;
+            background: var(--mint);
+            border-radius: 2px;
+            margin-top: 8px;
+        }
+
+        /* ── CARD ── */
+        .v-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .v-card-header {
+            background: var(--navy);
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .v-card-header-icon {
+            width: 36px; height: 36px;
+            background: rgba(15, 252, 190, 0.2);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--mint);
+            font-size: 16px;
+        }
+
+        .v-card-header h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 19px;
+            font-weight: 600;
+            color: var(--white);
+            margin: 0;
+        }
+
+        .v-card-body {
+            padding: 28px;
+        }
+
+        /* ── FORM CONTROLS ── */
+        .form-label {
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control, .form-select {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            background: #fafcfe;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(16,110,190,0.12);
+            background: var(--white);
+            outline: none;
+        }
+
+        .form-control::placeholder { color: #aab8c8; }
+
+        /* ── BUTTONS ── */
+        .btn-primary-v {
+            background: var(--navy);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 28px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary-v:hover {
+            background: var(--navy-lt);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(16,110,190,0.3);
+        }
+
+        .btn-mint {
+            background: var(--mint);
+            color: var(--navy-dk);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 28px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-mint:hover {
+            background: var(--mint-dk);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(15,252,190,0.35);
+        }
+
+        .btn-danger-v {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 28px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-warning-v {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        /* ── ALERTS ── */
+        .alert-v {
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 14px;
+            border: none;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .alert-v i { margin-top: 2px; flex-shrink: 0; }
+
+        .alert-info-v    { background: #e8f4fd; color: #0a4f8c; border-left: 4px solid var(--navy); }
+        .alert-success-v { background: #e6fdf5; color: #0a5c3c; border-left: 4px solid var(--mint-dk); }
+        .alert-danger-v  { background: #fde8e8; color: #8c0a0a; border-left: 4px solid #dc3545; }
+        .alert-warning-v { background: #fef9e8; color: #7c5a00; border-left: 4px solid #f59e0b; }
+
+        .alert-v h5 { font-family: 'Playfair Display', serif; font-size: 16px; margin-bottom: 4px; }
+        .alert-v small { opacity: 0.75; }
+
+        /* ── VOTE CARDS ── */
+        .vote-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .vote-card {
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vote-card:hover {
+            border-color: var(--navy-lt);
+            box-shadow: 0 4px 20px rgba(16,110,190,0.15);
+            transform: translateY(-2px);
+        }
+
+        .vote-card.selected {
+            border-color: var(--mint-dk);
+            background: #f0fdf8;
+            box-shadow: 0 4px 20px rgba(15,252,190,0.25);
+        }
+
+        .vote-card img {
+            width: 80px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .vote-card .c-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .vote-card input[type="radio"] { display: none; }
+
+        .vote-card .check-badge {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 22px; height: 22px;
+            background: var(--mint-dk);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+        }
+
+        .vote-card.selected .check-badge { display: flex; }
+
+        /* ── CONFIRM MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 30, 60, 0.65);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal-box {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 36px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(10,30,60,0.3);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.92) translateY(16px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-box h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            color: var(--navy);
+            margin-bottom: 16px;
+        }
+
+        .selected-name-badge {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lt) 100%);
+            color: var(--white);
+            border-radius: 10px;
+            padding: 14px 20px;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 16px 0;
+        }
+
+        .modal-warning {
+            font-size: 13px;
+            color: #dc3545;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-actions button { flex: 1; }
+
+        /* ── INFO BOX ── */
+        .info-box {
+            background: linear-gradient(135deg, rgba(16,110,190,0.06) 0%, rgba(15,252,190,0.08) 100%);
+            border: 1px solid rgba(16,110,190,0.15);
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+        }
+
+        .info-box strong { color: var(--navy); }
+
+        /* ── VOTE LOCK BANNER ── */
+        .vote-lock {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .vote-lock-icon {
+            width: 72px; height: 72px;
+            background: var(--bg);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 16px;
+            border: 2px solid var(--border);
+        }
+
+        .vote-lock h4 {
+            font-family: 'Playfair Display', serif;
+            color: var(--navy);
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .vote-lock p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+        /* ── STATUS SPINNER ── */
+        .spinner-v {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(16,110,190,0.2);
+            border-top-color: var(--navy);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── ROW DIVIDER ── */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        @media (max-width: 600px) {
+            .topnav { padding: 0 16px; }
+            .nav-links { display: none; }
+            .page-wrapper { padding: 24px 16px; }
+            .form-row { grid-template-columns: 1fr; }
+            .nav-brand-sub { display: none; }
+            .vote-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── TOP NAVBAR ── -->
+    <nav class="topnav">
+        <a class="nav-brand" href="#">
+            <div class="nav-brand-icon">🗳️</div>
+            <div class="nav-brand-text">
+                <span class="nav-brand-title">Aadhaar Voting System</span>
+                <span class="nav-brand-sub">Secure · Verified · Democratic</span>
+            </div>
+        </a>
+
+        <div class="nav-links" id="navLinks">
+            <button class="nav-tab active" id="tab-registration" onclick="showSection('registration', this)">
+                <i class="fas fa-user-plus"></i> Register
+            </button>
+            <button class="nav-tab" id="tab-verification" onclick="showSection('verification', this)">
+                <i class="fas fa-fingerprint"></i> Verify
+            </button>
+            <button class="nav-tab" id="tab-voting" onclick="showSection('voting', this)">
+                <i class="fas fa-vote-yea"></i> Vote
+            </button>
+        </div>
+
+        <div class="nav-right">
+            <div class="nav-user">
+                <i class="fas fa-shield-alt"></i>
+                <span id="navUserInfo">Election Portal</span>
+            </div>
+            <button class="btn-logout" onclick="window.location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- ── CONFIRM MODAL ── -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box">
+            <h4>⚠️ Confirm Your Vote</h4>
+            <p style="font-size:14px; color:var(--muted);">You are about to cast your vote for:</p>
+            <div class="selected-name-badge" id="selectedCandidate">
+                <strong></strong>
+            </div>
+            <div class="modal-warning">
+                <i class="fas fa-exclamation-triangle" style="margin-top:2px; color:#dc3545;"></i>
+                <span>This action CANNOT be undone. You will NOT be able to vote again after confirming.</span>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-danger-v" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn-mint" onclick="submitVoteConfirmed()">
+                    <i class="fas fa-check"></i> Confirm Vote
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div class="page-wrapper">
+
+        <!-- REGISTRATION SECTION -->
+        <div id="registration" class="page-section active">
+            <div class="section-header">
+                <h2>Voter Registration</h2>
+                <p>Register with your Aadhaar details and enroll your fingerprint</p>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="v-card">
+                <div class="v-card-header">
+                    <div class="v-card-header-icon"><i class="fas fa-user-plus"></i></div>
+                    <h3>New Voter Registration</h3>
+                </div>
+                <div class="v-card-body">
+                    <div class="info-box">
+                        <strong>📋 Requirements:</strong> Valid Aadhaar number · Age 18 or above · Place finger on scanner after submission
+                    </div>
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label class="form-label">Aadhaar Number</label>
+                            <input type="text" class="form-control" id="regAadhaar" maxlength="12"
+                                   placeholder="Enter 12-digit Aadhaar number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="regName"
+                                   placeholder="Enter your full name as on Aadhaar" required>
+                        </div>
+                        <div class="form-row mb-3">
+                            <div>
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="regDOB" required>
+                            </div>
+                            <div>
+                                <label class="form-label">City</label>
+                                <input type="text" class="form-control" id="regCity"
+                                       placeholder="Your registered city" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary-v">
+                            <i class="fas fa-fingerprint"></i> Register & Enroll Fingerprint
+                        </button>
+                    </form>
+                    <div id="registerStatus" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VERIFICATION SECTION -->
+        <div id="verification" class="page-section">
+            <div class="section-header">
+                <h2>Voter Verification</h2>
+                <p>Verify your identity with Aadhaar and fingerprint before voting</p>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="v-card">
+                <div class="v-card-header">
+                    <div class="v-card-header-icon"><i class="fas fa-fingerprint"></i></div>
+                    <h3>Identity Verification</h3>
+                </div>
+                <div class="v-card-body">
+                    <div class="info-box">
+                        <strong>ℹ️ Instructions:</strong> Enter your Aadhaar and current city, then place your finger on the sensor when prompted.
+                    </div>
+                    <form id="verifyForm">
+                        <div class="mb-3">
+                            <label class="form-label">Aadhaar Number</label>
+                            <input type="text" class="form-control" id="verifyAadhaar" maxlength="12"
+                                   placeholder="Enter 12-digit Aadhaar number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Voting City</label>
+                            <input type="text" class="form-control" id="verifyCity"
+                                   placeholder="Where are you voting today?" required>
+                        </div>
+                        <button type="submit" class="btn-primary-v">
+                            <i class="fas fa-lock"></i> Verify Fingerprint
+                        </button>
+                    </form>
+                    <div id="verifyStatus" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VOTING SECTION -->
+        <div id="voting" class="page-section">
+            <div class="section-header">
+                <h2>Cast Your Vote</h2>
+                <p>Select your candidate — your vote is secret and counted once</p>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="v-card">
+                <div class="v-card-header">
+                    <div class="v-card-header-icon"><i class="fas fa-vote-yea"></i></div>
+                    <h3>Ballot</h3>
+                </div>
+                <div class="v-card-body" id="votingContent">
+                    <div class="vote-lock">
+                        <div class="vote-lock-icon">🔒</div>
+                        <h4>Verification Required</h4>
+                        <p>You must verify your identity before you can cast your vote.</p>
+                        <button class="btn-primary-v" onclick="showSection('verification', document.getElementById('tab-verification'))">
+                            <i class="fas fa-fingerprint"></i> Go to Verification
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end .page-wrapper -->
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $.ajaxSetup({ xhrFields: { withCredentials: true }, crossDomain: false });
+
+        let selectedCandidateName = '';
+        let verifiedAadhaar = '';
+
+        /* ── NAV SECTION SWITCH ── */
+        function showSection(sectionId, triggerEl) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            const tab = triggerEl || document.getElementById('tab-' + sectionId);
+            if (tab) tab.classList.add('active');
+        }
+
+        /* ── CANDIDATE SELECT ── */
+        function selectCandidate(candidateName, cardElement) {
+            document.querySelectorAll('.vote-card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            cardElement.querySelector('input[type="radio"]').checked = true;
+            selectedCandidateName = candidateName;
+        }
+
+        /* ── MODAL ── */
+        function openConfirmModal() {
+            if (!selectedCandidateName) {
+                alert('Please select a candidate first!');
+                return;
+            }
+            document.getElementById('selectedCandidate').querySelector('strong').textContent = selectedCandidateName;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+        }
+
+        function submitVoteConfirmed() {
+            closeConfirmModal();
+            castVote(selectedCandidateName);
+        }
+
+        /* ── HELPERS ── */
+        function alertHTML(type, icon, title, body, extra) {
+            return `<div class="alert-v alert-${type}-v">
+                <i class="fas fa-${icon}"></i>
+                <div><strong>${title}</strong>${body ? '<br>' + body : ''}${extra || ''}</div>
+            </div>`;
+        }
+
+        /* ── REGISTRATION ── */
+        $('#registerForm').submit(function(e) {
+            e.preventDefault();
+            const dob = new Date($('#regDOB').val());
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const md = today.getMonth() - dob.getMonth();
+            if (md < 0 || (md === 0 && today.getDate() < dob.getDate())) age--;
+
+            if (age < 18) {
+                $('#registerStatus').html(alertHTML('danger','times-circle','Registration Failed',
+                    `You must be 18 or older. Your age: <strong>${age} years</strong>.`));
+                return;
+            }
+
+            const aadhaar = $('#regAadhaar').val();
+            $.ajax({
+                url: '/register', method: 'POST',
+                data: { aadhaar, name: $('#regName').val(), age, city: $('#regCity').val() },
+                success: function(r) {
+                    if (r.status === 'pending') {
+                        $('#registerStatus').html(`<div class="alert-v alert-info-v">
+                            <i class="fas fa-fingerprint"></i>
+                            <div><strong>👆 ${r.message}</strong><br>
+                            <small>The system will scan your fingerprint twice for accuracy.</small>
+                            <br><span class="spinner-v"></span></div></div>`);
+                        pollRegistrationStatus(aadhaar);
+                    } else {
+                        $('#registerStatus').html(alertHTML('danger','times-circle','Error', r.message));
+                    }
+                }
+            });
+        });
+
+        function pollRegistrationStatus(aadhaar) {
+            let pc = 0, max = 30;
+            const iv = setInterval(function() {
+                pc++;
+                $.ajax({
+                    url: '/check_registration/' + aadhaar, method: 'GET',
+                    success: function(r) {
+                        if (r.status === 'complete') {
+                            clearInterval(iv);
+                            $('#registerStatus').html(alertHTML('success','check-circle','Registration Successful!',
+                                `Name: ${r.name}<br>Fingerprint ID: ${r.fingerprint_id}`,
+                                '<br><small>Proceed to Verification when ready.</small>'));
+                        } else if (pc >= max) {
+                            clearInterval(iv);
+                            $('#registerStatus').html(alertHTML('danger','clock','Timeout','Please try again.'));
+                        }
+                    }
+                });
+            }, 1000);
+        }
+
+        /* ── VERIFICATION ── */
+        $('#verifyForm').submit(function(e) {
+            e.preventDefault();
+            const aadhaar = $('#verifyAadhaar').val();
+            $.ajax({
+                url: '/verify', method: 'POST',
+                data: { aadhaar, city: $('#verifyCity').val() },
+                success: function(r) {
+                    if (r.status === 'success') {
+                        $('#verifyStatus').html(`<div class="alert-v alert-info-v">
+                            <i class="fas fa-fingerprint"></i>
+                            <div><strong>👆 ${r.message}</strong><br>
+                            <small>Place your finger on the sensor...</small>
+                            <br><span class="spinner-v"></span></div></div>`);
+                        pollVerificationStatus(aadhaar);
+                    } else {
+                        $('#verifyStatus').html(alertHTML('danger','times-circle','Verification Failed', r.message));
+                    }
+                }
+            });
+        });
+
+        function pollVerificationStatus(aadhaar) {
+            let pc = 0, max = 30;
+            const iv = setInterval(function() {
+                pc++;
+                $.ajax({
+                    url: '/check_verification/' + aadhaar, method: 'GET',
+                    success: function(r) {
+                        if (r.status === 'verified') {
+                            clearInterval(iv);
+                            verifiedAadhaar = aadhaar;
+                            document.getElementById('navUserInfo').textContent = aadhaar.slice(-4).padStart(aadhaar.length, '•');
+
+                            let msg = `<div class="alert-v alert-success-v"><i class="fas fa-check-circle"></i>
+                                <div><strong>✅ Identity Verified!</strong><br>You are cleared to vote.`;
+                            if (r.migrated) msg += `<br><small>🌍 Migrated Voter: ${r.registered_city} → ${r.voting_city}</small>`;
+                            msg += `<br><small>Redirecting to ballot...</small></div></div>`;
+                            $('#verifyStatus').html(msg);
+
+                            setTimeout(function() {
+                                enableVotingSection();
+                                showSection('voting', document.getElementById('tab-voting'));
+                            }, 2000);
+
+                        } else if (r.status === 'error') {
+                            clearInterval(iv);
+                            const attempts = r.attempts || 0;
+                            let html = alertHTML('danger','times-circle','Fingerprint Mismatch',
+                                `${r.message}<br><small>Attempt ${attempts}/3</small>`,
+                                r.show_retry ? `<br><button class="btn-warning-v" onclick="retryVerification()">🔄 Retry Verification</button>` : '');
+                            $('#verifyStatus').html(html);
+
+                        } else if (r.status === 'fraud') {
+                            clearInterval(iv);
+                            $('#verifyStatus').html(alertHTML('danger','ban','Access Blocked',
+                                `${r.message}<br><small>Multiple failed attempts detected.</small>`));
+
+                        } else if (pc >= max) {
+                            clearInterval(iv);
+                            $('#verifyStatus').html(alertHTML('danger','clock','Timeout','Verification timed out. Please try again.'));
+                        }
+                    }
+                });
+            }, 1000);
+        }
+
+        function retryVerification() {
+            $('#verifyStatus').html('');
+            $('#verifyForm').submit();
+        }
+
+        /* ── ENABLE VOTING ── */
+        function enableVotingSection() {
+            document.getElementById('votingContent').innerHTML = `
+                <div class="alert-v alert-warning-v mb-4" style="margin-bottom:20px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div><strong>⚠️ ONE VOTE ONLY</strong><br>This action cannot be undone once confirmed.</div>
+                </div>
+
+                <p style="font-family:'Playfair Display',serif; font-size:16px; font-weight:600; color:var(--navy); margin-bottom:16px;">
+                    Select Your Candidate
+                </p>
+
+                <form id="voteForm">
+                    <div class="vote-grid">
+                        <div class="vote-card" onclick="selectCandidate('Congress', this)">
+                            <div class="check-badge"><i class="fas fa-check"></i></div>
+                            <img src="/static/congress.jpg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%234285f4%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2213%22 font-weight=%22bold%22%3ECongress%3C/text%3E%3C/svg%3E'" alt="Congress">
+                            <div class="c-name">Congress Party</div>
+                            <input type="radio" name="candidate" value="Congress" required>
+                        </div>
+                        <div class="vote-card" onclick="selectCandidate('BJP', this)">
+                            <div class="check-badge"><i class="fas fa-check"></i></div>
+                            <img src="/static/bjp.jpg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%23ff9933%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2213%22 font-weight=%22bold%22%3EBJP%3C/text%3E%3C/svg%3E'" alt="BJP">
+                            <div class="c-name">Bharatiya Janata Party</div>
+                            <input type="radio" name="candidate" value="BJP" required>
+                        </div>
+                        <div class="vote-card" onclick="selectCandidate('RJD', this)">
+                            <div class="check-badge"><i class="fas fa-check"></i></div>
+                            <img src="/static/rjd.jpg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%2300a651%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2213%22 font-weight=%22bold%22%3ERJD%3C/text%3E%3C/svg%3E'" alt="RJD">
+                            <div class="c-name">Rashtriya Janata Dal</div>
+                            <input type="radio" name="candidate" value="RJD" required>
+                        </div>
+                        <div class="vote-card" onclick="selectCandidate('AAP', this)">
+                            <div class="check-badge"><i class="fas fa-check"></i></div>
+                            <img src="/static/aap.jpg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%23003da5%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2213%22 font-weight=%22bold%22%3EAAP%3C/text%3E%3C/svg%3E'" alt="AAP">
+                            <div class="c-name">Aam Aadmi Party</div>
+                            <input type="radio" name="candidate" value="AAP" required>
+                        </div>
+                        <div class="vote-card" onclick="selectCandidate('JDS', this)">
+                            <div class="check-badge"><i class="fas fa-check"></i></div>
+                            <img src="/static/jds.jpg" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2270%22%3E%3Crect fill=%22%23138808%22 width=%22100%22 height=%2270%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22 font-size=%2213%22 font-weight=%22bold%22%3EJDS%3C/text%3E%3C/svg%3E'" alt="JDS">
+                            <div class="c-name">Janata Dal (Secular)</div>
+                            <input type="radio" name="candidate" value="JDS" required>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-mint" onclick="openConfirmModal()">
+                        <i class="fas fa-vote-yea"></i> Submit Vote
+                    </button>
+                </form>
+                <div id="voteStatus" class="mt-3"></div>
+            `;
+        }
+
+        /* ── CAST VOTE ── */
+        function castVote(candidate) {
+            if (!verifiedAadhaar) {
+                $('#voteStatus').html(alertHTML('danger','times-circle','Not Verified',
+                    'Please verify your identity first.',
+                    `<br><button class="btn-warning-v" onclick="showSection('verification', document.getElementById('tab-verification'))">Go to Verification →</button>`));
+                return;
+            }
+            $.ajax({
+                url: '/check_session?aadhaar=' + verifiedAadhaar, method: 'GET',
+                success: function(sc) {
+                    if (!sc.logged_in) {
+                        verifiedAadhaar = '';
+                        $('#voteStatus').html(alertHTML('danger','clock','Session Expired',
+                            'Please verify again.',
+                            `<br><button class="btn-warning-v" onclick="showSection('verification', document.getElementById('tab-verification'))">Go to Verification →</button>`));
+                        return;
+                    }
+                    submitVote(candidate);
+                }
+            });
+        }
+
+        function submitVote(candidate) {
+            $.ajax({
+                url: '/vote', method: 'POST',
+                data: { aadhaar: verifiedAadhaar, candidate },
+                success: function(r) {
+                    if (r.status === 'success') {
+                        verifiedAadhaar = '';
+                        document.getElementById('navUserInfo').textContent = 'Election Portal';
+                        $('#voteStatus').html(`<div class="alert-v alert-success-v">
+                            <i class="fas fa-check-circle" style="font-size:22px;margin-top:2px;"></i>
+                            <div><strong style="font-family:'Playfair Display',serif;font-size:17px;">Vote Recorded Successfully!</strong>
+                            <br>Thank you for voting for <strong>${candidate}</strong>.
+                            <br><span style="color:var(--mint-dk); font-weight:600;">🎉 Your civic duty is complete!</span>
+                            <br><small>You cannot vote again.</small></div></div>`);
+                        document.querySelectorAll('.vote-card').forEach(c => {
+                            c.style.pointerEvents = 'none';
+                            c.style.opacity = '0.5';
+                        });
+                        if (document.querySelector('#voteForm button[type="button"]'))
+                            document.querySelector('#voteForm button[type="button"]').disabled = true;
+                    } else {
+                        $('#voteStatus').html(alertHTML('danger','times-circle','Error', r.message));
+                    }
+                },
+                error: function() {
+                    $('#voteStatus').html(alertHTML('danger','wifi','Connection Error','Could not reach server. Please try again.'));
+                }
+            });
+        }
+    </script>
+</body>
+</html>

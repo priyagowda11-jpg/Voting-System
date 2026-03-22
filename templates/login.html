@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — Aadhaar Voting System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --navy:    #106EBE;
+            --navy-dk: #0a4f8c;
+            --navy-lt: #1a82d8;
+            --mint:    #0FFCBE;
+            --mint-dk: #0bd4a0;
+            --white:   #ffffff;
+            --bg:      #f4f8fd;
+            --text:    #1a2b3c;
+            --muted:   #6b7e93;
+            --border:  #d6e4f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Roboto', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* ── SPLIT LAYOUT ── */
+        .login-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 920px;
+            min-height: 540px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(16,110,190,0.18);
+        }
+
+        /* LEFT PANEL */
+        .left-panel {
+            background: linear-gradient(160deg, var(--navy-dk) 0%, var(--navy) 60%, var(--navy-lt) 100%);
+            width: 42%;
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: -60px;
+            width: 220px; height: 220px;
+            background: rgba(15,252,190,0.08);
+            border-radius: 50%;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            top: -40px; left: -40px;
+            width: 150px; height: 150px;
+            background: rgba(15,252,190,0.06);
+            border-radius: 50%;
+        }
+
+        .brand-mark {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative; z-index: 1;
+        }
+
+        .brand-icon {
+            width: 52px; height: 52px;
+            background: var(--mint);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+        }
+
+        .brand-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.2;
+        }
+
+        .brand-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,0.65);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            position: relative; z-index: 1;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .feature-list li i {
+            color: var(--mint);
+            width: 16px;
+        }
+
+        .left-footer {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            position: relative; z-index: 1;
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+            background: var(--white);
+            flex: 1;
+            padding: 48px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .panel-header {
+            margin-bottom: 32px;
+        }
+
+        .panel-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 6px;
+        }
+
+        .panel-header p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .header-bar {
+            height: 3px;
+            width: 44px;
+            background: var(--mint);
+            border-radius: 2px;
+            margin-top: 10px;
+        }
+
+        /* FLASH MESSAGES */
+        .flash-msg {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease, fadeOut 0.5s ease 3.5s forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to   { opacity: 0; height: 0; padding: 0; margin: 0; overflow: hidden; }
+        }
+
+        .flash-danger  { background: #fde8e8; color: #8c0a0a; border-left: 4px solid #dc3545; }
+        .flash-success { background: #e6fdf5; color: #0a5c3c; border-left: 4px solid var(--mint-dk); }
+        .flash-info    { background: #e8f4fd; color: #0a4f8c; border-left: 4px solid var(--navy); }
+
+        /* FORM */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 7px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i.prefix {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px 12px 40px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            background: #fafcfe;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(16,110,190,0.12);
+            background: var(--white);
+        }
+
+        .form-control::placeholder { color: #aab8c8; }
+
+        .toggle-pw {
+            position: absolute;
+            right: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 15px;
+            background: none;
+            border: none;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .toggle-pw:hover { color: var(--navy); }
+
+        /* SUBMIT BUTTON */
+        .btn-submit {
+            width: 100%;
+            background: var(--navy);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            padding: 13px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: var(--navy-lt);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(16,110,190,0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* FOOTER LINK */
+        .form-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .form-footer a {
+            color: var(--navy);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 680px) {
+            .left-panel { display: none; }
+            .login-wrapper { max-width: 420px; border-radius: 20px; }
+            .right-panel { padding: 36px 28px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="brand-mark">
+            <div class="brand-icon">🗳️</div>
+            <div>
+                <div class="brand-title">Aadhaar<br>Voting System</div>
+                <div class="brand-sub" style="margin-top:8px;">Secure · Verified · Democratic<br>Admin Control Panel</div>
+            </div>
+        </div>
+
+        <ul class="feature-list">
+            <li><i class="fas fa-chart-pie"></i> Real-time vote analytics</li>
+            <li><i class="fas fa-shield-alt"></i> Fraud detection monitoring</li>
+            <li><i class="fas fa-fingerprint"></i> ESP32 fingerprint integration</li>
+            <li><i class="fas fa-file-excel"></i> Export reports (.xlsx / .csv)</li>
+            <li><i class="fas fa-map-marker-alt"></i> City-wise vote breakdown</li>
+        </ul>
+
+        <div class="left-footer">Admin access only · All activity is logged</div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <div class="panel-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to access the admin dashboard</p>
+            <div class="header-bar"></div>
+        </div>
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-msg flash-{{ category }}">
+                        <i class="fas fa-{% if category == 'danger' %}times-circle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- LOGIN FORM -->
+        <form method="POST" action="/login" id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <div class="input-wrap">
+                    <i class="fas fa-envelope prefix"></i>
+                    <input type="email" name="email" class="form-control"
+                           placeholder="admin@example.com" required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-wrap">
+                    <i class="fas fa-lock prefix"></i>
+                    <input type="password" name="password" id="passwordField"
+                           class="form-control" placeholder="Enter your password"
+                           required autocomplete="current-password">
+                    <button type="button" class="toggle-pw" id="togglePw" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <span id="btnText"><i class="fas fa-sign-in-alt"></i> Sign In</span>
+                <div class="spinner" id="btnSpinner" style="display:none;"></div>
+            </button>
+        </form>
+
+        <div class="form-footer">
+            Don't have an account?
+            <a href="/signup">Create Admin Account →</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Show/hide password toggle
+    function togglePassword() {
+        const field = document.getElementById('passwordField');
+        const icon  = document.getElementById('eyeIcon');
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            field.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    // Loading spinner on submit
+    document.getElementById('loginForm').addEventListener('submit', function() {
+        document.getElementById('btnText').style.display    = 'none';
+        document.getElementById('btnSpinner').style.display = 'block';
+        document.getElementById('submitBtn').disabled = true;
+    });
+
+    // Auto-dismiss flash messages after 4 seconds
+    setTimeout(function() {
+        document.querySelectorAll('.flash-msg').forEach(function(el) {
+            el.style.transition = 'opacity 0.5s, height 0.5s, padding 0.5s, margin 0.5s';
+            el.style.opacity  = '0';
+            el.style.height   = '0';
+            el.style.padding  = '0';
+            el.style.margin   = '0';
+            el.style.overflow = 'hidden';
+        });
+    }, 4000);
+</script>
+</body>
+</html>
