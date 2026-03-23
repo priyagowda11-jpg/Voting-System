@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![Voting System Banner](screenshots/dashboard_overview.png)
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Render-blue?style=for-the-badge)](https://voting-system-ozpz.onrender.com)
 [![Dashboard](https://img.shields.io/badge/📊_Dashboard-Streamlit-red?style=for-the-badge)](https://voting-system-24.streamlit.app)
