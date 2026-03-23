@@ -10,7 +10,7 @@
 [![ESP32](https://img.shields.io/badge/ESP32-Arduino-teal?style=for-the-badge&logo=arduino)](https://www.arduino.cc)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-green?style=for-the-badge&logo=postgresql)](https://supabase.com)
 
-> **A full-stack IoT voting system combining biometric authentication, cloud backend, and live analytics dashboard — built as a final year EEE project.**
+> **A full-stack IoT voting system combining biometric authentication, cloud backend, and live analytics dashboard — built as a third year EEE project.**
 
 </div>
 
